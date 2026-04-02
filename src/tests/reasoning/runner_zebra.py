@@ -8,7 +8,6 @@ from src.tests.test_abstract import TestAbstract
 class ZebraPuzzleResponse(BaseModel):
     water_drinker: str = Field(description="The nationality of the person who drinks water")
     zebra_owner: str = Field(description="The nationality of the person who owns the zebra")
-    reasoning: str = Field(description="Brief explanation of the reasoning process")
 
 
 class ZebraPuzzleTest(TestAbstract):
@@ -43,20 +42,19 @@ class ZebraPuzzleTest(TestAbstract):
             "zebra_owner": "Japanese"
         }
     
-    def check_result(self, result: str) -> tuple[bool, float, Optional[str]]:
+    def check_result(self, result: ZebraPuzzleResponse) -> tuple[bool, float, Optional[str]]:
         """
-        Check if the model's answer is correct.
-        
+        Check if the model's answer is correct using ground_truth.
+
         Returns:
             tuple of (passed, score, message)
         """
-        result_lower = result.lower()
-        
-        correct_water = "norwegian" in result_lower and "water" in result_lower
-        correct_zebra = "japanese" in result_lower and "zebra" in result_lower
-        
+        truth = self.ground_truth
+        correct_water = result.water_drinker.lower() == truth["water_drinker"].lower()
+        correct_zebra = result.zebra_owner.lower() == truth["zebra_owner"].lower()
+
         if correct_water and correct_zebra:
-            return True, 1.0, "Correct: Norwegian drinks water, Japanese owns zebra"
+            return True, 1.0, f"Correct: {truth['water_drinker']} drinks water, {truth['zebra_owner']} owns zebra"
         elif correct_water or correct_zebra:
             return False, 0.5, "Partially correct: got one answer right"
         else:
@@ -94,20 +92,17 @@ def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
     
     result = test.run()
     
+    # Add MLFlow
     print(f"Water drinker: {result.water_drinker}")
     print(f"Zebra owner: {result.zebra_owner}")
-    print(f"Reasoning: {result.reasoning}")
     print("-" * 50)
     
-    # Check correctness
-    passed, score, message = test.check_result(
-        f"{result.water_drinker} drinks water, {result.zebra_owner} owns zebra"
-    )
+    passed, score, message = test.check_result(result)
+    print("Passed:", passed)
     print(f"Result: {message}")
     print(f"Score: {score:.2%}")
     
     return result
 
 
-# Export the test class for use in test suites
 __all__ = ["ZebraPuzzleTest", "ZebraPuzzleResponse", "run_zebra_puzzle_test"]

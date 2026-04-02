@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Optional, Any, Union
 import sys
 sys.path.insert(0, "/home/jorge/Documentos/mini-local-bench")
 
@@ -32,8 +32,14 @@ class TestAbstract(ABC):
         return None
 
     @abstractmethod
-    def check_result(self, result: str) -> tuple[bool, float, Optional[str]]:
+    def check_result(self, result: Union[str, Any]) -> tuple[bool, float, Optional[str]]:
         """
         Check if the model response is correct.
+        
+        Args:
+            result: The model response, can be a string or a structured object (Pydantic model)
+        
+        Returns:
+            tuple of (passed, score, message)
         """
         pass
