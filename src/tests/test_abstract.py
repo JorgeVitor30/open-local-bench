@@ -43,3 +43,34 @@ class TestAbstract(ABC):
             tuple of (passed, score, message)
         """
         pass
+
+    def _log_result(self, result: Any, passed: bool, score: float, message: Optional[str], model_name: str, category: str = "general") -> None:
+        """
+        Log test results using MLflow logger.
+        
+        This method can be overridden by subclasses to customize logging behavior
+        (e.g., adding specific metrics for that test type).
+        
+        Args:
+            result: The raw result from the model
+            passed: Whether the test passed
+            score: Score between 0.0 and 1.0
+            message: Optional message explaining the result
+            model_name: Name of the model being tested
+            category: Category of the test (e.g., "reasoning", "code", "math")
+        """
+        try:
+            from src.utils.mlflow_logger import get_benchmark_logger
+            logger = get_benchmark_logger()
+            logger.log_test(
+                test_name=self.name,
+                model_name=model_name,
+                category=category,
+                passed=passed,
+                score=score,
+                response=result,
+                ground_truth=self.ground_truth,
+                prompt=self.prompt,
+            )
+        except Exception as e:
+            print(f"Warning: Failed to log to MLFlow: {e}")

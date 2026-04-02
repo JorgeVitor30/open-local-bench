@@ -45,7 +45,4 @@ Provide your answer in the following format:
 Solution:
 - The [Nationality] drinks water.
 - The [Nationality] owns the zebra.
-
-Reasoning Summary:
-[Brief explanation of how you arrived at the solution]
 ```

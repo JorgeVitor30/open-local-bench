@@ -39,7 +39,16 @@ class MLFlowBenchmarkLogger:
         Args:
             category: Test category like 'reasoning', 'code', 'math', 'language'
         """
+        from mlflow.tracking import MlflowClient
+        
         experiment_name = f"benchmark_{category}"
+        client = MlflowClient()
+        
+        experiment = client.get_experiment_by_name(experiment_name)
+        if experiment and experiment.lifecycle_stage == "deleted":
+            print(f"⚠️ Restoring deleted experiment: '{experiment_name}'")
+            client.restore_experiment(experiment.experiment_id)
+        
         mlflow.set_experiment(experiment_name)
         self._current_experiment = experiment_name
         print(f"✓ Experiment set: '{experiment_name}'")
