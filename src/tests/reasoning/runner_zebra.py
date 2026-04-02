@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel, Field
 from src.models.ollama_model import OllamaModel
 from src.utils.prompts import load_prompt
@@ -10,7 +9,7 @@ class ZebraPuzzleResponse(BaseModel):
     zebra_owner: str = Field(description="The nationality of the person who owns the zebra")
 
 
-class ZebraPuzzleTest(TestAbstract):
+class ZebraPuzzleTest(TestAbstract[ZebraPuzzleResponse]):
     """
     Zebra Puzzle reasoning test.
     
@@ -42,30 +41,20 @@ class ZebraPuzzleTest(TestAbstract):
             "zebra_owner": "Japanese"
         }
     
-    def check_result(self, result) -> tuple[bool, float, str]:
+    def check_result(self, result: ZebraPuzzleResponse) -> tuple[bool, float, str]:
         """
         Check if the model's answer is correct using ground_truth.
 
         Args:
-            result: ZebraPuzzleResponse or dict with the model's answers
+            result: ZebraPuzzleResponse from the model
 
         Returns:
             tuple of (passed, score, message)
         """
         truth = self.ground_truth
         
-        # Handle both Pydantic model and dict
-        if isinstance(result, ZebraPuzzleResponse):
-            water_drinker = result.water_drinker
-            zebra_owner = result.zebra_owner
-        elif isinstance(result, dict):
-            water_drinker = result.get("water_drinker", "")
-            zebra_owner = result.get("zebra_owner", "")
-        else:
-            return False, 0.0, "Invalid result type"
-        
-        correct_water = water_drinker.lower() == truth["water_drinker"].lower()
-        correct_zebra = zebra_owner.lower() == truth["zebra_owner"].lower()
+        correct_water = result.water_drinker.lower() == truth["water_drinker"].lower()
+        correct_zebra = result.zebra_owner.lower() == truth["zebra_owner"].lower()
 
         if correct_water and correct_zebra:
             return True, 1.0, f"Correct: {truth['water_drinker']} drinks water, {truth['zebra_owner']} owns zebra"
@@ -84,44 +73,10 @@ class ZebraPuzzleTest(TestAbstract):
             temperature=0.3
         )
         
-        # Check result and log automatically using base class method
         passed, score, message = self.check_result(result)
-        self._log_result(result, passed, score, message, model_name=self._model_name, category="reasoning")
-        
+        self._log_result(result, passed, score, message, self._model_name, category="reasoning")
+
         return result
 
 
-def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
-    """
-    Run Zebra Puzzle reasoning test (Life International, 1962).
-    
-    This is a convenience function that creates and runs the test.
-    Logging is handled automatically by the test class.
-    
-    Args:
-        model_name: Name of the Ollama model to use
- 
-    Returns:
-        ZebraPuzzleResponse with the model's answers
-    """
-    test = ZebraPuzzleTest(model_name=model_name)
-    
-    print(f"Running Zebra Puzzle test with {model_name}...")
-    print("-" * 50)
-    
-    result = test.run()
-    
-    print(f"Water drinker: {result.water_drinker}")
-    print(f"Zebra owner: {result.zebra_owner}")
-    print("-" * 50)
-    
-    # check_result é chamado automaticamente em run(), mas precisamos dos valores pro print
-    passed, score, message = test.check_result(result)
-    print("Passed:", passed)
-    print(f"Result: {message}")
-    print(f"Score: {score:.2%}")
-
-    return result
-
-
-__all__ = ["ZebraPuzzleTest", "ZebraPuzzleResponse", "run_zebra_puzzle_test"]
+__all__ = ["ZebraPuzzleTest", "ZebraPuzzleResponse"]

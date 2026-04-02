@@ -56,4 +56,4 @@ def run_benchmark(categories: list[str] | None = None, model_name: str = "llama3
 
 
 if __name__ == "__main__":
-    run_benchmark()
+    run_benchmark(model_name='llama3.1')

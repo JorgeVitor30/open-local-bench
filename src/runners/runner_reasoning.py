@@ -12,7 +12,7 @@ from typing import List, Any
 from src.tests.reasoning.runner_zebra import ZebraPuzzleTest
 
 
-def run_reasoning_tests(model_name: str = "llama3.2") -> List[dict]:
+def run_reasoning_tests(model_name: str) -> List[dict]:
     """
     Run all reasoning tests.
     

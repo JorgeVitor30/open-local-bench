@@ -1,13 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any, Union
+from typing import Optional, Any, Generic, TypeVar
 import sys
 sys.path.insert(0, "/home/jorge/Documentos/mini-local-bench")
 
 
-class TestAbstract(ABC):
+T = TypeVar('T')
+
+
+class TestAbstract(ABC, Generic[T]):
     """
     Base class for all tests.
-
+    
+    T is the expected result type (e.g., ZebraPuzzleResponse, str, int, dict)
+    
     A test runs a prompt against a model and checks the result.
     """
 
@@ -32,19 +37,19 @@ class TestAbstract(ABC):
         return None
 
     @abstractmethod
-    def check_result(self, result: Union[str, Any]) -> tuple[bool, float, Optional[str]]:
+    def check_result(self, result: T) -> tuple[bool, float, Optional[str]]:
         """
         Check if the model response is correct.
         
         Args:
-            result: The model response, can be a string or a structured object (Pydantic model)
+            result: The model response with type T (e.g., ZebraPuzzleResponse, str, etc.)
         
         Returns:
             tuple of (passed, score, message)
         """
         pass
 
-    def _log_result(self, result: Any, passed: bool, score: float, message: Optional[str], model_name: str, category: str = "general") -> None:
+    def _log_result(self, result: T, passed: bool, score: float, message: Optional[str], model_name: str, category: str = "general") -> None:
         """
         Log test results using MLflow logger.
         
@@ -52,7 +57,7 @@ class TestAbstract(ABC):
         (e.g., adding specific metrics for that test type).
         
         Args:
-            result: The raw result from the model
+            result: The raw result from the model (type T)
             passed: Whether the test passed
             score: Score between 0.0 and 1.0
             message: Optional message explaining the result
