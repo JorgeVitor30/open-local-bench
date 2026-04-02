@@ -2,6 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from src.models.ollama_model import OllamaModel
 from src.utils.prompts import load_prompt
+from src.utils.mlflow_logger import get_benchmark_logger
 from src.tests.test_abstract import TestAbstract
 
 
@@ -24,7 +25,7 @@ class ZebraPuzzleTest(TestAbstract):
     
     @property
     def name(self) -> str:
-        return "zebra_puzzle_reasoning"
+        return "zebra_puzzle"
     
     @property
     def prompt(self) -> str:
@@ -42,7 +43,7 @@ class ZebraPuzzleTest(TestAbstract):
             "zebra_owner": "Japanese"
         }
     
-    def check_result(self, result: ZebraPuzzleResponse) -> tuple[bool, float, Optional[str]]:
+    def check_result(self, result: ZebraPuzzleResponse) -> tuple[bool, float, str]:
         """
         Check if the model's answer is correct using ground_truth.
 
@@ -81,7 +82,7 @@ def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
     
     Args:
         model_name: Name of the Ollama model to use
-        
+ 
     Returns:
         ZebraPuzzleResponse with the model's answers
     """
@@ -92,7 +93,6 @@ def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
     
     result = test.run()
     
-    # Add MLFlow
     print(f"Water drinker: {result.water_drinker}")
     print(f"Zebra owner: {result.zebra_owner}")
     print("-" * 50)
@@ -101,7 +101,23 @@ def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
     print("Passed:", passed)
     print(f"Result: {message}")
     print(f"Score: {score:.2%}")
-    
+
+    try:
+        logger = get_benchmark_logger()
+        logger.log_test(
+            test_name=test.name,
+            model_name=model_name,
+            category="reasoning", 
+            passed=passed,
+            score=score,
+            response=result,
+            ground_truth=test.ground_truth,
+            prompt=test.prompt,
+            temperature=0.3
+        )
+    except Exception as e:
+        print(f"Warning: Failed to log to MLFlow: {e}")
+
     return result
 
 
