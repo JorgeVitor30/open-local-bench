@@ -1,0 +1,113 @@
+from typing import Optional
+from pydantic import BaseModel, Field
+from src.models.ollama_model import OllamaModel
+from src.utils.prompts import load_prompt
+from src.tests.test_abstract import TestAbstract
+
+
+class ZebraPuzzleResponse(BaseModel):
+    water_drinker: str = Field(description="The nationality of the person who drinks water")
+    zebra_owner: str = Field(description="The nationality of the person who owns the zebra")
+    reasoning: str = Field(description="Brief explanation of the reasoning process")
+
+
+class ZebraPuzzleTest(TestAbstract):
+    """
+    Zebra Puzzle reasoning test.
+    
+    Tests if the model can solve the classic logic puzzle
+    using deductive reasoning.
+    """
+    
+    def __init__(self, model_name: str = "llama3.2"):
+        self._model_name = model_name
+        self._prompt = load_prompt("zebra_prompt", category="reasoning")
+    
+    @property
+    def name(self) -> str:
+        return "zebra_puzzle_reasoning"
+    
+    @property
+    def prompt(self) -> str:
+        return self._prompt
+    
+    @property
+    def ground_truth(self) -> dict:
+        """
+        Ground truth solution:
+        - Norwegian drinks water
+        - Japanese owns the zebra
+        """
+        return {
+            "water_drinker": "Norwegian",
+            "zebra_owner": "Japanese"
+        }
+    
+    def check_result(self, result: str) -> tuple[bool, float, Optional[str]]:
+        """
+        Check if the model's answer is correct.
+        
+        Returns:
+            tuple of (passed, score, message)
+        """
+        result_lower = result.lower()
+        
+        correct_water = "norwegian" in result_lower and "water" in result_lower
+        correct_zebra = "japanese" in result_lower and "zebra" in result_lower
+        
+        if correct_water and correct_zebra:
+            return True, 1.0, "Correct: Norwegian drinks water, Japanese owns zebra"
+        elif correct_water or correct_zebra:
+            return False, 0.5, "Partially correct: got one answer right"
+        else:
+            return False, 0.0, "Incorrect: neither answer is correct"
+    
+    def run(self) -> ZebraPuzzleResponse:
+        """Execute the test and return structured result."""
+        model = OllamaModel(model_name=self._model_name)
+        
+        result = model.run(
+            self.prompt,
+            response_format=ZebraPuzzleResponse,
+            temperature=0.3
+        )
+        
+        return result
+
+
+def run_zebra_puzzle_test(model_name: str = "llama3.2") -> ZebraPuzzleResponse:
+    """
+    Run Zebra Puzzle reasoning test (Life International, 1962).
+    
+    This is a convenience function that creates and runs the test.
+    
+    Args:
+        model_name: Name of the Ollama model to use
+        
+    Returns:
+        ZebraPuzzleResponse with the model's answers
+    """
+    test = ZebraPuzzleTest(model_name=model_name)
+    
+    print(f"Running Zebra Puzzle test with {model_name}...")
+    print("-" * 50)
+    
+    result = test.run()
+    
+    print(f"Water drinker: {result.water_drinker}")
+    print(f"Zebra owner: {result.zebra_owner}")
+    print(f"Reasoning: {result.reasoning}")
+    print("-" * 50)
+    
+    # Check correctness
+    passed, score, message = test.check_result(
+        f"{result.water_drinker} drinks water, {result.zebra_owner} owns zebra"
+    )
+    print(f"Result: {message}")
+    print(f"Score: {score:.2%}")
+    
+    return result
+
+
+# Export the test class for use in test suites
+__all__ = ["ZebraPuzzleTest", "ZebraPuzzleResponse", "run_zebra_puzzle_test"]

@@ -3,8 +3,6 @@ from typing import Optional, Any
 import sys
 sys.path.insert(0, "/home/jorge/Documentos/mini-local-bench")
 
-from prompts.prompt_abstract import PromptAbstract
-
 
 class TestAbstract(ABC):
     """
@@ -20,9 +18,10 @@ class TestAbstract(ABC):
         pass
 
     @property
+    @abstractmethod
     def prompt(self) -> str:
-        """The actual prompt text (from prompt_obj)."""
-        return PromptAbstract.prompt
+        """The actual prompt text to send to the model."""
+        pass
 
     @property
     def ground_truth(self) -> Optional[Any]:
