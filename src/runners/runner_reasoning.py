@@ -10,6 +10,7 @@ Each test class must have:
 
 from typing import List, Any
 from src.tests.reasoning.runner_zebra import ZebraPuzzleTest
+from src.tests.reasoning.runner_gpqa import GPQATest
 
 
 def run_reasoning_tests(model_name: str, temperature: float = 0.0) -> List[dict]:
@@ -29,6 +30,7 @@ def run_reasoning_tests(model_name: str, temperature: float = 0.0) -> List[dict]
     
     test_classes: list[tuple[str, Any]] = [
         ("zebra_puzzle", ZebraPuzzleTest),
+        ("gpqa_test", GPQATest),
     ]
     
     results = []
@@ -40,19 +42,39 @@ def run_reasoning_tests(model_name: str, temperature: float = 0.0) -> List[dict]
         
         try:
             test = TestClass(model_name=model_name, temperature=temperature)
-            result = test.run()  
+            result = test.run()
             
-            passed, score, message = test.check_result(result)
-            print(f"✓ Result: {message}")
-            print(f"✓ Score: {score:.2%}")
-            
-            results.append({
-                "test": test_name,
-                "passed": passed,
-                "score": score,
-                "message": message,
-                "status": "completed"
-            })
+            if test_name == "gpqa_test":
+                results_list, avg_score = result
+
+                if results_list:
+                    final_result = results_list[-1]
+                    passed, score, message = test.check_result(final_result)
+                else:
+                    passed, score, message = False, avg_score, "No results"
+                
+                print(f"✓ GPQA Average Score: {avg_score:.2%}")
+                print(f"✓ Questions processed: {len(results_list)}")
+                
+                results.append({
+                    "test": test_name,
+                    "passed": passed,
+                    "score": avg_score,  
+                    "message": f"Processed {len(results_list)} questions, avg score: {avg_score:.2%}",
+                    "status": "completed"
+                })
+            else:
+                passed, score, message = test.check_result(result)
+                print(f"✓ Result: {message}")
+                print(f"✓ Score: {score:.2%}")
+                
+                results.append({
+                    "test": test_name,
+                    "passed": passed,
+                    "score": score,
+                    "message": message,
+                    "status": "completed"
+                })
         except Exception as e:
             print(f"✗ {test_name} failed: {e}")
             results.append({

@@ -26,9 +26,6 @@ Analyze the question carefully and provide a well-reasoned answer. Take your tim
 Provide your answer in the following format:
 
 ```
-Reasoning Process:
-[Your step-by-step reasoning here]
-
 Final Answer:
 [Your concise answer to the question]
 ```
