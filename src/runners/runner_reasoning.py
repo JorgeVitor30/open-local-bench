@@ -12,13 +12,14 @@ from typing import List, Any
 from src.tests.reasoning.runner_zebra import ZebraPuzzleTest
 
 
-def run_reasoning_tests(model_name: str) -> List[dict]:
+def run_reasoning_tests(model_name: str, temperature: float = 0.0) -> List[dict]:
     """
     Run all reasoning tests.
-    
+
     Args:
         model_name: Name of the Ollama model to use
-        
+        temperature: Temperature for model generation
+
     Returns:
         List of test results with status, score, and error info
     """
@@ -38,7 +39,7 @@ def run_reasoning_tests(model_name: str) -> List[dict]:
         print("-" * 40)
         
         try:
-            test = TestClass(model_name=model_name)
+            test = TestClass(model_name=model_name, temperature=temperature)
             result = test.run()  
             
             passed, score, message = test.check_result(result)

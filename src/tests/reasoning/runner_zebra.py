@@ -17,8 +17,9 @@ class ZebraPuzzleTest(TestAbstract[ZebraPuzzleResponse]):
     using deductive reasoning.
     """
     
-    def __init__(self, model_name: str = "llama3.2"):
+    def __init__(self, model_name: str = "llama3.2", temperature: float = 0.0):
         self._model_name = model_name
+        self._temperature = temperature
         self._prompt = load_prompt("zebra_prompt", category="reasoning")
     
     @property
@@ -70,7 +71,7 @@ class ZebraPuzzleTest(TestAbstract[ZebraPuzzleResponse]):
         result = model.run(
             self.prompt,
             response_format=ZebraPuzzleResponse,
-            temperature=0.3
+            temperature=self._temperature
         )
         
         passed, score, message = self.check_result(result)
